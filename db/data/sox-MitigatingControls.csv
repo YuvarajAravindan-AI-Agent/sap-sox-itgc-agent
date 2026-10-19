@@ -1,0 +1,4 @@
+ID,userId,ruleId,description,approvedBy,validFrom,validTo
+MIT-001,TR002,SOD-P2P-02,Treasury lead reviews every payment run report weekly,CTL001,2026-01-01,2027-06-30
+MIT-002,GL004,SOD-GL-01,Controller second-reviews all self-approved journals,CTL001,2025-07-01,2026-06-30
+MIT-003,AP007,SOD-P2P-02,"Mitigation for a different rule, does not cover SOD-P2P-01",CTL001,2026-01-01,2027-06-30

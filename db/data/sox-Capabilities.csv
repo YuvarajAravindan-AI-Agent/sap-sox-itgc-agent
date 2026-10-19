@@ -1,0 +1,7 @@
+capability,authObject,activity,privileged,description
+VENDOR_MAINTAIN,F_LFA1_BUK,02,true,Create or change vendor master records
+PAYMENT_RUN,F_REGU_BUK,01,true,Run and release automatic payments
+INVOICE_POST,F_BKPF_KOA,01,false,Post vendor invoices
+JOURNAL_POST,F_BKPF_BUK,01,false,Post general ledger journals
+JOURNAL_APPROVE,F_BKPF_BUK,43,true,Release or approve journals
+TRANSPORT_RELEASE,S_TRANSPRT,43,true,Release transports toward production

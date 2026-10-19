@@ -24,9 +24,9 @@ Our angle, carried over from the stock sandbox: **the agent never decides compli
 ## 4. Control catalogue, release 1 (three controls)
 | ID | Control | Test (deterministic) | Population | Pass rule |
 |---|---|---|---|---|
-| ITGC-AC-01 | Segregation of duties in the purchase-to-pay flow | Join user-role assignments to authorization objects; flag any active user holding both a "maintain vendor master" capability and a "release payment" capability (ruleset in data, e.g. vendor create vs payment run). Also flag dormant-but-active privileged users (no login for N days). | All active dialog users | Zero conflicts, or each conflict has an approved, unexpired mitigating-control record |
-| FIN-JE-01 | Manual journal entry review | From posted journal lines, select manual postings (not subledger-originated): flag entries posted by privileged/firefighter users, posted after period close, round amounts above a threshold, posted on weekends/holidays, or with no approver recorded. | All manual postings in the period | Every flagged entry has a documented review; counts reconcile to ledger totals |
-| ITGC-CM-01 | Change management to production | Join transport/release records to change tickets; flag production changes with no approved ticket, approver equal to developer, or emergency changes not reviewed within the window. | All production transports in the period | Zero unapproved changes; emergency changes reviewed |
+| ITGC-AC-01 | Segregation of duties in the purchase-to-pay flow | Join user-role assignments to authorization objects; flag any active dialog user holding both sides of a SoD rule through currently valid role assignments (three rules in release 1: vendor maintain vs payment run, invoice post vs payment run, journal post vs approve). Locked users, expired or not-yet-valid assignments and firefighter ids are out of scope (firefighter usage is release 2). Also flag unlocked privileged dialog users with no login for 90 days. | All active dialog users | Zero conflicts, or each conflict has an approved, unexpired mitigating-control record |
+| FIN-JE-01 | Manual journal entry review | From posted journal lines, select manual postings (not subledger-originated): flag entries posted by firefighter ids, entered after the posting period closed, round amounts (at least 100,000 and a multiple of 10,000), entered on a weekend or US federal holiday, or with no independent approver (none recorded, or the poster approved their own entry). | All manual postings in the period | Every flagged entry has a documented review; counts reconcile to ledger totals |
+| ITGC-CM-01 | Change management to production | Join transport/release records to change tickets; flag production transports with no ticket or a ticket not approved, a ticket approved by the transport owner, approval dated after release, and emergency changes not reviewed within 5 calendar days of release. | All production transports in the period | Zero unapproved changes; emergency changes reviewed |
 
 Why these three: they are the ones external auditors most often test for SAP, they use data that is the same shape in every client, and they need full-population logic where manual testing only samples.
 Release 2 candidates (not in scope now): user access review completeness, firefighter-ID usage, vendor bank-detail changes, three-way-match overrides, interface/batch job monitoring.
@@ -54,6 +54,7 @@ Data must be seeded with planted, countable exceptions (for example 4 SoD confli
 - **After the trial:** the same code deploys to a client's BTP subaccount against their S/4HANA via a destination. See `DEPLOY.md` in `sap-gov-sandbox` for the rebuild steps.
 
 ## 7. Plan (about 2 weeks, trial ends mid-January 2027)
+Progress: days 1-2 done 2026-10-19 (schema, seed generator, planted-exception manifest, independent SQL oracle, audit chain reused). See README.md.
 | Days | Deliverable |
 |---|---|
 | 1-2 | Repo fork, schema, seed generator with planted exceptions, tests that assert the planted counts |

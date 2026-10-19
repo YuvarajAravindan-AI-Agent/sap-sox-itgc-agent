@@ -1,0 +1,224 @@
+{
+  "generatedBy": "seed/generate.js",
+  "note": "Synthetic data. Every number here is planted on purpose; control tests must reproduce them exactly.",
+  "parameters": {
+    "quarter": {
+      "fiscalYear": 2026,
+      "periods": [
+        7,
+        8,
+        9
+      ],
+      "from": "2026-07-01",
+      "to": "2026-09-30",
+      "label": "Q3 2026"
+    },
+    "companyCode": "1000",
+    "dormantDays": 90,
+    "roundThreshold": 100000,
+    "roundModulus": 10000,
+    "holidays": [
+      "2026-07-03",
+      "2026-09-07"
+    ],
+    "emergencyReviewDays": 5,
+    "referenceDate": "2026-10-19"
+  },
+  "ITGC-AC-01": {
+    "population": {
+      "activeDialogUsers": 57
+    },
+    "sodConflictPairs": 6,
+    "sodConflictPairList": [
+      "AP006|SOD-P2P-01",
+      "AP007|SOD-P2P-01",
+      "AP008|SOD-P2P-01",
+      "AP008|SOD-P2P-02",
+      "TR002|SOD-P2P-02",
+      "GL004|SOD-GL-01"
+    ],
+    "validMitigations": [
+      "TR002|SOD-P2P-02"
+    ],
+    "sodExceptionPairs": 5,
+    "sodExceptionPairList": [
+      "AP006|SOD-P2P-01",
+      "AP007|SOD-P2P-01",
+      "AP008|SOD-P2P-01",
+      "AP008|SOD-P2P-02",
+      "GL004|SOD-GL-01"
+    ],
+    "sodExceptionUsers": [
+      "AP006",
+      "AP007",
+      "AP008",
+      "GL004"
+    ],
+    "dormantPrivilegedUsers": [
+      "AP011",
+      "MD003"
+    ],
+    "decoys": [
+      {
+        "user": "AP009",
+        "why": "holds only one side of SOD-P2P-01"
+      },
+      {
+        "user": "AP010",
+        "why": "payment role expired 2026-03-31, no current conflict"
+      },
+      {
+        "user": "AP012",
+        "why": "conflict (SOD-P2P-01) but the user is locked"
+      },
+      {
+        "user": "AP013",
+        "why": "payment role starts 2026-11-01, no current conflict"
+      },
+      {
+        "user": "AP014",
+        "why": "dormant but holds no privileged capability"
+      },
+      {
+        "user": "BS002",
+        "why": "dormant privileged but locked"
+      },
+      {
+        "user": "BS004",
+        "why": "privileged, last logon 80 days before the reference date (under the 90 day limit)"
+      },
+      {
+        "user": "FF01..FF03",
+        "why": "firefighter ids are out of scope of this control (release 2)"
+      }
+    ]
+  },
+  "FIN-JE-01": {
+    "population": {
+      "manualDocuments": 150,
+      "totalDocuments": 403
+    },
+    "flaggedDocuments": 8,
+    "flagged": {
+      "4900000001": [
+        "FIREFIGHTER_POSTER"
+      ],
+      "4900000002": [
+        "FIREFIGHTER_POSTER",
+        "WEEKEND_OR_HOLIDAY"
+      ],
+      "4900000003": [
+        "AFTER_PERIOD_CLOSE"
+      ],
+      "4900000004": [
+        "AFTER_PERIOD_CLOSE",
+        "NO_INDEPENDENT_APPROVAL"
+      ],
+      "4900000005": [
+        "ROUND_AMOUNT"
+      ],
+      "4900000006": [
+        "ROUND_AMOUNT",
+        "NO_INDEPENDENT_APPROVAL"
+      ],
+      "4900000007": [
+        "WEEKEND_OR_HOLIDAY"
+      ],
+      "4900000008": [
+        "WEEKEND_OR_HOLIDAY"
+      ]
+    },
+    "reasonCounts": {
+      "FIREFIGHTER_POSTER": 2,
+      "WEEKEND_OR_HOLIDAY": 3,
+      "AFTER_PERIOD_CLOSE": 2,
+      "NO_INDEPENDENT_APPROVAL": 2,
+      "ROUND_AMOUNT": 2
+    },
+    "decoys": [
+      {
+        "doc": "4900000009",
+        "why": "entered on the closing day of period 9 (2026-10-07), not after it"
+      },
+      {
+        "doc": "4900000010",
+        "why": "round (90,000.00) but under the 100,000 threshold"
+      },
+      {
+        "doc": "4900000011",
+        "why": "125,000.00 is over the threshold but not a multiple of 10,000"
+      },
+      {
+        "doc": "4900000012",
+        "why": "subledger source: firefighter, weekend, after close, round, but not a manual posting"
+      },
+      {
+        "doc": "4900000013",
+        "why": "subledger source: weekend, round, but not a manual posting"
+      },
+      {
+        "doc": "4900000014",
+        "why": "subledger source: firefighter on a holiday, round, but not a manual posting"
+      }
+    ]
+  },
+  "ITGC-CM-01": {
+    "population": {
+      "productionTransportsInQuarter": 40
+    },
+    "exceptions": 7,
+    "flagged": {
+      "PRDK900033": [
+        "NO_TICKET"
+      ],
+      "PRDK900034": [
+        "NO_TICKET"
+      ],
+      "PRDK900035": [
+        "TICKET_NOT_APPROVED"
+      ],
+      "PRDK900036": [
+        "SELF_APPROVED"
+      ],
+      "PRDK900037": [
+        "APPROVED_AFTER_RELEASE"
+      ],
+      "PRDK900038": [
+        "EMERGENCY_NOT_REVIEWED"
+      ],
+      "PRDK900039": [
+        "EMERGENCY_REVIEW_LATE"
+      ]
+    },
+    "reasonCounts": {
+      "NO_TICKET": 2,
+      "TICKET_NOT_APPROVED": 1,
+      "SELF_APPROVED": 1,
+      "APPROVED_AFTER_RELEASE": 1,
+      "EMERGENCY_NOT_REVIEWED": 1,
+      "EMERGENCY_REVIEW_LATE": 1
+    },
+    "decoys": [
+      {
+        "trkorr": "PRDK900040",
+        "why": "emergency change reviewed 3 days after release, inside the 5 day window"
+      },
+      {
+        "trkorr": "PRDK900041",
+        "why": "DEV transport without a ticket: not production"
+      },
+      {
+        "trkorr": "PRDK900042",
+        "why": "QAS transport without a ticket: not production"
+      },
+      {
+        "trkorr": "PRDK900043",
+        "why": "production transport without a ticket, released before the quarter"
+      },
+      {
+        "trkorr": "PRDK900044",
+        "why": "production transport without a ticket, released after the quarter"
+      }
+    ]
+  }
+}

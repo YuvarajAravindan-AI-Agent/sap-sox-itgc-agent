@@ -1,0 +1,4 @@
+ruleId,capabilityA,capabilityB,riskLevel,description
+SOD-P2P-01,VENDOR_MAINTAIN,PAYMENT_RUN,CRITICAL,Create or change a vendor and also release payments to it
+SOD-P2P-02,INVOICE_POST,PAYMENT_RUN,HIGH,Post a vendor invoice and also release the payment
+SOD-GL-01,JOURNAL_POST,JOURNAL_APPROVE,HIGH,Post a journal and also approve journals
