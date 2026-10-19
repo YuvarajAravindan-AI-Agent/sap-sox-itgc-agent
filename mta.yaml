@@ -1,0 +1,56 @@
+_schema-version: 3.3.0
+ID: sap-sox-itgc-agent
+version: 0.1.0
+description: "SOX 404 / ITGC evidence service: deterministic control tests, hash-chained audit, sign-off, evidence packs"
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: sap-sox-itgc-agent-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+      memory: 256M
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: sap-sox-itgc-agent-db
+      - name: sap-sox-itgc-agent-auth
+      - name: gov-dest-admin   # used once, by srv/setup-destination.js, to register the SoxControlService destination
+
+  - name: sap-sox-itgc-agent-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: sap-sox-itgc-agent-db
+
+resources:
+  - name: gov-dest-admin
+    type: org.cloudfoundry.existing-service
+  - name: sap-sox-itgc-agent-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: sap-sox-itgc-agent-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: sap-sox-itgc-agent-${org}-${space}
+        tenant-mode: dedicated
