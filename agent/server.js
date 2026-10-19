@@ -22,6 +22,10 @@ function gate(req, res, next) {
 // Where the control service lives: a BTP destination on Cloud Foundry, or a direct URL for local testing.
 let destCache
 async function target() {
+  if (process.env.CONTROLS_BASE && process.env.CONTROLS_BEARER_FILE) {   // demo/local use against the deployed service: a client-credentials token kept in a 0600 file
+    const t = JSON.parse(require('node:fs').readFileSync(process.env.CONTROLS_BEARER_FILE, 'utf8')).access_token
+    return { base: process.env.CONTROLS_BASE, headers: { Authorization: 'Bearer ' + t } }
+  }
   if (process.env.CONTROLS_BASE) {
     const h = process.env.CONTROLS_BASIC ? { Authorization: 'Basic ' + Buffer.from(process.env.CONTROLS_BASIC).toString('base64') } : {}
     return { base: process.env.CONTROLS_BASE, headers: h }
@@ -62,7 +66,8 @@ async function llm(messages, tools) {
 if (require.main === module) {
   const app = express()
   app.use(express.json({ limit: '100kb' }))
-  app.use(gate)
+  const localDemo = process.env.LOCAL_DEMO_NO_GATE === '1'   // demo captures only: no login page, and the server binds to 127.0.0.1 so nothing else can reach it
+  if (!localDemo) app.use(gate)
   app.use(express.static(__dirname + '/public'))
   app.post('/api/chat', async (req, res) => {
     try {
@@ -73,6 +78,7 @@ if (require.main === module) {
       res.json({ conversationId: cid, ...(await chat({ messages, cid, llm, controls })) })
     } catch (e) { res.status(500).json({ error: e.message }) }
   })
-  app.listen(PORT, () => console.log('sox agent listening on', PORT))
+  if (localDemo) app.listen(PORT, '127.0.0.1', () => console.log('sox agent (local demo, no gate) on 127.0.0.1:' + PORT))
+  else app.listen(PORT, () => console.log('sox agent listening on', PORT))
 }
 module.exports = { controls, llm }

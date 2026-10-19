@@ -1,0 +1,28 @@
+Part 3 of my governed SAP agent: SOX 404 and IT general controls for US companies. The model explains. Code tests every item. A named person signs.
+
+A US public company has to show every year that its financial controls worked. For SAP that means who can do what (access), what changed in production (change management), and which manual journals were posted and by whom. In practice an auditor tests a sample, often about 25 items, and the rest of the population is never looked at.
+
+So I built the other way round, on the same foundation as parts 1 and 2:
+
+- Three controls run in code over the FULL population: segregation of duties and dormant privileged users, manual journal review, and change management to production
+- Each control is cross-checked by a second computation built a different way. If the two disagree, or the cross-check cannot run, a clean result is reported as NOT CONCLUSIVE, never as a pass
+- Every run is a row in a hash-chained audit trail on SAP HANA. The evidence pack (chained rows, result, sign-off, narrative) can be verified offline with no SAP system
+- A Gemini agent explains results. It has two tools (list controls, run a control), refuses to "mark a control effective" before the model is even called, and its wording is withheld if it claims effectiveness
+- Only a named control owner can conclude, with a separate scope the agent never holds, and never on a run made for themselves
+
+Live on a BTP trial, the planted exceptions came back exactly: 5 segregation-of-duties exception pairs and 2 dormant privileged users, 8 of 150 manual journals flagged, 7 of 40 production transports. The data is synthetic but SAP-shaped, and every exception was planted and counted before the run.
+
+Two things broke, and I kept them in the video. A column was 12 characters wide and "NOT_EFFECTIVE" is 13: SQLite never complained, HANA did, so a test now checks every stored value against its declared length. And my own guard once withheld an honest disclaimer as if it were a claim.
+
+Where we got to across the three parts:
+1. A governed stock service so the model stops doing arithmetic
+2. A tamper-evident audit trail, an independent ledger, and a mismatch that is said out loud
+3. SOX/ITGC controls with cross-checks, named-human sign-off and offline-verifiable evidence
+
+Honest limits: synthetic data on a trial account, and the cross-check recomputes the logic over the same tables, so it catches logic errors, not a wrong extract. This is evidence tooling; it does not replace the control owner or the auditor.
+
+The code is in a private GitHub repo; I'm happy to share access with anyone who wants to look at it.
+
+If you run SAP in a US-listed company, which control would you want tested over the whole population first?
+
+#SAP #SAPBTP #SOX #ITGC #InternalAudit #AIAgents #RegulatedIndustries #EnterpriseAI

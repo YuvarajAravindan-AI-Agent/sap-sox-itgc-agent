@@ -1,0 +1,8 @@
+$ cf logs sap-sox-itgc-agent-db-deployer --recent   # HDI deploy into a second container on govsandbox (excerpt, 2026-10-19)
+Inserted 14 records of the data source file "sox-RoleAuthorizations.csv" into the target table "SOX_ROLEAUTHORIZATIONS"
+Inserted 70 records of the data source file "sox-RoleAssignments.csv" into the target table "SOX_ROLEASSIGNMENTS"
+Inserted 44 records of the data source file "sox-Transports.csv" into the target table "SOX_TRANSPORTS"
+Inserted 3 records of the data source file "sox-SodRules.csv" into the target table "SOX_SODRULES"
+Inserted 63 records of the data source file "sox-Users.csv" into the target table "SOX_USERS"
+Make succeeded (0 warnings): 36 files deployed (effective 46), 0 files undeployed (effective 0)
+Deploying to the container "40C99122FF4F44EF8CCF335E64104D30"... ok (4s 139ms)

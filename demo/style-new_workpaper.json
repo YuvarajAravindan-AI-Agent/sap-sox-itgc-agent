@@ -1,0 +1,18 @@
+{
+ "id": "audit-workpaper-tickmark-binder",
+ "description": "SOX / ITGC control agent demo (2026-10-19): an external-auditor workpaper look. 1920x1080 landscape; pale sage-green columnar-pad paper with faint green ruled columns and a red margin line; a right-edge binder index tab stack (WP-1..WP-9) as the progress indicator; DejaVu Serif headings with Liberation Mono figures; reference codes (WP-3.2) and tick-marks (ticked, tied, agreed, exception) drawn as red-pencil marks that stamp onto numbers; scenes change with a binder page flip; captions are margin annotations with a reference code; the end card is a preparer / reviewer sign-off block carrying the founder name. Voice Sadaltager.",
+ "fingerprint": {
+  "aspect": ["landscape-1920x1080-workpaper-binder-tabs"],
+  "palette_family": ["sage-green-columnar-paper-red-pencil-tickmark"],
+  "background": ["green-columnar-workpaper-with-red-margin-line"],
+  "typography": ["dejavu-serif", "liberation-mono"],
+  "camera_motion": ["tickmark-stamp-drop-and-pencil-underline"],
+  "transition": ["binder-page-flip"],
+  "caption_style": ["margin-annotation-with-reference-code"],
+  "progress_indicator": ["right-edge-binder-index-tabs"],
+  "intro_device": ["sample-of-25-versus-full-population-hook"],
+  "outro_device": ["preparer-reviewer-signoff-block-founder"],
+  "narration_voice": ["tts-sadaltager"],
+  "signature_motif": ["tickmark-legend-and-reference-codes", "planted-vs-found-reconciliation-table", "evidence-pack-offline-verify-terminal", "hash-chain-seal-on-signoff-block"]
+ }
+}

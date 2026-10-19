@@ -1,0 +1,11 @@
+$ cf apps
+name  requested  state  processes  routes
+sap-sox-itgc-agent-db-deployer  stopped  web:0/1  
+sap-sox-itgc-agent-srv  started  web:1/1  06407a50trial-dev-sap-sox-itgc-agent-srv.cfapps.us10-001.hana.ondemand.com
+sox-itgc-agent  started  web:1/1  sox-itgc-agent.cfapps.us10-001.hana.ondemand.com
+
+$ cf services
+name                      offering      plan          bound apps                                                        
+gov-dest-admin            destination   lite          sap-gov-agent, sap-gov-sandbox-srv, sox-itgc-agent, sap-sox-itgc-a
+sap-sox-itgc-agent-auth   xsuaa         application   sap-sox-itgc-agent-srv                                            
+sap-sox-itgc-agent-db     hana          hdi-shared    sap-sox-itgc-agent-srv, sap-sox-itgc-agent-db-deployer            

@@ -1,0 +1,8 @@
+$ GET /controls/verifyAuditChain()   # SAP HANA, as an auditor
+{
+ "ok": true,
+ "rows": 22,
+ "headSeq": 22,
+ "headHash": "06077c02c1a189cc...",
+ "legacyUnchained": 0
+}

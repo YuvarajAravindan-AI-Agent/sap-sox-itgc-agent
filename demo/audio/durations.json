@@ -1,0 +1,13 @@
+{
+ "hook": 18.28,
+ "problem": 26.52,
+ "earlier": 33.0,
+ "phase3": 22.2,
+ "live_ac01": 29.24,
+ "live_je_cm": 30.12,
+ "guardrails": 24.36,
+ "signoff": 30.08,
+ "infra": 30.84,
+ "honest": 34.6,
+ "close": 20.8
+}

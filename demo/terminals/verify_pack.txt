@@ -1,0 +1,2 @@
+$ node tools/verify-pack.js evidence/hana-evidence-run2-signed.jsonl
+OK  ITGC-AC-01 run seq 2 (EXCEPTIONS), chain 15 rows intact from genesis, signed off by yaravindan@gmail.com: NOT_EFFECTIVE

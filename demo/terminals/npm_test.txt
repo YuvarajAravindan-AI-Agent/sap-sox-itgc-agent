@@ -1,0 +1,23 @@
+$ npm test   # Node 22, 8 test files
+AC-01 ok: 6 conflict pairs, 5 exceptions, 2 dormant privileged
+JE-01 ok: 8 flagged of 150 manual documents
+CM-01 ok: 7 exceptions of 40 production transports
+OK - seed
+chain ok: 6 rows
+offline verify: OK  6 rows, seq 1..6, anchored at genesis, head 4389b0d30a49
+OK - chain
+planted numbers reproduced; mitigation states and role evidence correct
+date logic ok: expiry, past reference date, role start and end boundaries
+dormancy boundary checked (90 not dormant, 91 dormant)
+OK - ac01
+OK - je01/cm01
+sign-off rules: bad input, missing/non-run rows, effective-with-exceptions and independence rejected
+signed pack verifies: OK  ITGC-AC-01 run seq 1 (EXCEPTIONS), chain 10 rows intact from genesis, signed off by owner1: NOT_EFFECTIVE
+tampering with result, chain row, sign-off, signer, narrative, rows or header all fail verification
+declared string lengths hold for every stored value
+OK - evidence
+disclaimers pass through; claims (including "not effective") are still withheld
+OK - agent
+NOT_CONCLUSIVE when the cross-check disagrees or is unavailable; audited
+OK - ac01 service
+OK - e2e: run, 400, 403, 401 audited; chain intact; export works
