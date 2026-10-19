@@ -114,7 +114,7 @@ entity Signoffs : cuid {
   runHash            : String(64);     // that row's hash, so a changed run cannot keep its sign-off
   signedBy           : String(120);    // authenticated user, never taken from the request body
   signedAt           : Timestamp;
-  conclusion         : String(12);     // EFFECTIVE | NOT_EFFECTIVE
+  conclusion         : String(20);     // EFFECTIVE | NOT_EFFECTIVE (13 characters: HANA enforces lengths, SQLite does not)
   exceptionsReviewed : Boolean;
   comment            : String(1000);
   auditSeq           : Integer;        // seq of the signOffControl audit row

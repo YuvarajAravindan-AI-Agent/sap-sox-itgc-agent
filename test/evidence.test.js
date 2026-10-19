@@ -90,5 +90,15 @@ const TOOLS = path.join(__dirname, '..', 'tools')
 
   const v = JSON.parse(await send(as('aud', ['auditor']), 'verifyAuditChain', {})); assert.strictEqual(v.ok, true, JSON.stringify(v))
   const exportRows = await cds.run(SELECT.from('sox.AuditLog').where({ tool: 'exportEvidence' })); assert.ok(exportRows.length >= 4, 'exports are audited')
+  // HANA enforces declared string lengths and SQLite does not (a 13-character value in a String(12) column passed every SQLite test and failed on HANA).
+  // So check every stored value against the length the model declares.
+  const over = []
+  for (const [name, def] of Object.entries(cds.model.definitions)) {
+    if (def.kind !== 'entity' || !name.startsWith('sox.')) continue
+    const limits = Object.fromEntries(Object.entries(def.elements).filter(([, e]) => e.type === 'cds.String' && e.length).map(([k, e]) => [k, e.length]))
+    for (const row of await cds.run(SELECT.from(name))) for (const [k, n] of Object.entries(limits)) if (row[k] != null && String(row[k]).length > n) over.push(`${name}.${k} (${n}): "${String(row[k]).slice(0, 30)}"`)
+  }
+  assert.deepStrictEqual(over, [], 'values longer than their declared column length: ' + over.join('; '))
+  console.log('declared string lengths hold for every stored value')
   console.log('OK - evidence'); await cds.disconnect(); process.exit(0)
 })().catch(e => { console.error(e); process.exit(1) })
