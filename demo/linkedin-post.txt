@@ -19,6 +19,9 @@ Where we got to across the three parts:
 2. A tamper-evident audit trail, an independent ledger, and a mismatch that is said out loud
 3. SOX/ITGC controls with cross-checks, named-human sign-off and offline-verifiable evidence
 
+Part 1: https://lnkd.in/p/gs4gSxpC
+Part 2: https://lnkd.in/p/gfkmKhhf
+
 Honest limits: synthetic data on a trial account, and the cross-check recomputes the logic over the same tables, so it catches logic errors, not a wrong extract. This is evidence tooling; it does not replace the control owner or the auditor.
 
 The video shows it running live against SAP HANA, including the two failures. The code is in a private repo; I'm happy to share access with anyone who wants to look at it.
