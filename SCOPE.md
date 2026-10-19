@@ -54,7 +54,7 @@ Data must be seeded with planted, countable exceptions (for example 4 SoD confli
 - **After the trial:** the same code deploys to a client's BTP subaccount against their S/4HANA via a destination. See `DEPLOY.md` in `sap-gov-sandbox` for the rebuild steps.
 
 ## 7. Plan (about 2 weeks, trial ends mid-January 2027)
-Progress: days 1-2 done 2026-10-19 (schema, seed generator, planted-exception manifest, independent SQL oracle, audit chain reused). See README.md.
+Progress: days 1-5 done 2026-10-19 (schema, seed, SQL oracle, audit chain, ITGC-AC-01 service with cross-check, 5 test files). Next: days 6-7. See README.md.
 | Days | Deliverable |
 |---|---|
 | 1-2 | Repo fork, schema, seed generator with planted exceptions, tests that assert the planted counts |

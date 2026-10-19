@@ -1,0 +1,14 @@
+{
+  "xsappname": "sap-sox-itgc-agent",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    { "name": "$XSAPPNAME.agent",   "description": "Run controls and read the control library (agent / destination client)" },
+    { "name": "$XSAPPNAME.auditor", "description": "Read and export the audit trail" }
+  ],
+  "attributes": [],
+  "role-templates": [
+    { "name": "Agent",   "description": "Agent access",   "scope-references": ["$XSAPPNAME.agent"] },
+    { "name": "Auditor", "description": "Audit read access", "scope-references": ["$XSAPPNAME.auditor"] }
+  ],
+  "authorities": ["$XSAPPNAME.agent"]
+}
