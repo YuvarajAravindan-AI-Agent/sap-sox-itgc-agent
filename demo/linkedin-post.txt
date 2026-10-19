@@ -1,8 +1,8 @@
-Part 3 of my governed SAP agent: SOX 404 and IT general controls for US companies. The model explains. Code tests every item. A named person signs.
+Part 3 of my governed SAP agent series: SOX 404 and IT general controls for US companies. The model explains. Code tests every item. A named person signs.
 
 A US public company has to show every year that its financial controls worked. For SAP that means who can do what (access), what changed in production (change management), and which manual journals were posted and by whom. In practice an auditor tests a sample, often about 25 items, and the rest of the population is never looked at.
 
-So I built the other way round, on the same foundation as parts 1 and 2:
+So I built the opposite, on the same foundation as parts 1 and 2:
 
 - Three controls run in code over the FULL population: segregation of duties and dormant privileged users, manual journal review, and change management to production
 - Each control is cross-checked by a second computation built a different way. If the two disagree, or the cross-check cannot run, a clean result is reported as NOT CONCLUSIVE, never as a pass
@@ -21,7 +21,7 @@ Where we got to across the three parts:
 
 Honest limits: synthetic data on a trial account, and the cross-check recomputes the logic over the same tables, so it catches logic errors, not a wrong extract. This is evidence tooling; it does not replace the control owner or the auditor.
 
-The code is in a private GitHub repo; I'm happy to share access with anyone who wants to look at it.
+The video shows it running live against SAP HANA, including the two failures. The code is in a private repo; I'm happy to share access with anyone who wants to look at it.
 
 If you run SAP in a US-listed company, which control would you want tested over the whole population first?
 

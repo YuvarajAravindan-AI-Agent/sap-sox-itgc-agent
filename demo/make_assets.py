@@ -98,7 +98,7 @@ save(im, 'controls_table')
 
 M = json.load(open(os.path.join(HERE, '..', 'seed', 'manifest.json')))
 im, d = paper('WP-4.1', 4); title(d, 'Planted versus found, on SAP HANA', 'Synthetic data; every exception was planted on purpose and counted before the run')
-hdr = ['Control', 'Planted', 'Found (live HANA run)', 'Cross-check']; xs = [160, 560, 1000, 1500]
+hdr = ['Control', 'Planted', 'Found (live HANA run)', 'Cross-check']; xs = [160, 740, 1060, 1560]
 for x, h in zip(xs, hdr): d.text((x, 230), h, font=F(SERIFB, 30), fill=INK)
 d.line([(150, 280), (1770, 280)], fill=INK, width=3)
 data = [('ITGC-AC-01  SoD exception pairs', str(M['ITGC-AC-01']['sodExceptionPairs']), '5 of 6 conflict pairs'), ('ITGC-AC-01  dormant privileged', str(len(M['ITGC-AC-01']['dormantPrivilegedUsers'])), '2 users'),
