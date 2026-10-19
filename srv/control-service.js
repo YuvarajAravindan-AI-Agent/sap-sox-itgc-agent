@@ -1,11 +1,13 @@
 const cds = require('@sap/cds')
-const { appendInRequest, appendOwnTx, verify, exportRows, dataVersion } = require('./audit')
+const { appendInRequest, appendOwnTx, verify, exportRows, dataVersion, RULE_VERSION } = require('./audit')
 const catalogue = require('./controls/catalogue')
 const ac01 = require('./controls/ac01')
 const crosscheck = require('./controls/ac01-crosscheck')
 const je01 = require('./controls/je01'), je01x = require('./controls/je01-crosscheck')
 const cm01 = require('./controls/cm01'), cm01x = require('./controls/cm01-crosscheck')
 const { today, valid, lastCompletedQuarter } = require('./controls/dates')
+const { buildNarrative } = require('./narrative')
+const { sha } = require('./chain')
 
 // Controls that can run now. Each: how to load its data, run it, and cross-check it.
 const CONTROLS = {
@@ -78,6 +80,69 @@ module.exports = class ControlService extends cds.ApplicationService {
       await appendInRequest(req, row(req, 'exportAudit', { fromSeq, limit }, { rows: header.rows, headSeq: header.headSeq }, 'OK', 200,
         { dataVersion: dataVersion(header.headHash), asOf: new Date().toISOString() }))
       return text
+    })
+
+
+    // ---- human sign-off -------------------------------------------------------------------------------------------------
+    // Rules: the signer is the authenticated user; a run is signed off once; an inconclusive run cannot be concluded effective;
+    // a run with exceptions can be concluded effective only if the owner states they reviewed the exceptions and says why (20+ characters);
+    // the signer cannot be the person on whose behalf the run was made.
+    this.on('signOffControl', async req => {
+      const { runSeq, conclusion, exceptionsReviewed, comment } = req.data
+      const { Signoffs, AuditLog } = cds.entities('sox')
+      if (!['EFFECTIVE', 'NOT_EFFECTIVE'].includes(conclusion)) return req.reject(400, 'conclusion must be EFFECTIVE or NOT_EFFECTIVE')
+      const runRow = await SELECT.one.from(AuditLog).where({ seq: runSeq })
+      if (!runRow) return req.reject(404, `No audit row with seq ${runSeq}`)
+      if (runRow.tool !== 'runControl' || runRow.outcome !== 'OK') return req.reject(422, `Audit row ${runSeq} is not a successful control run`)
+      const result = JSON.parse(runRow.output)
+      const signer = req.user?.id
+      if (!signer || signer === 'anonymous') return req.reject(401, 'A named user is required')
+      if (runRow.endUser && runRow.endUser === signer) return req.reject(409, 'The signer cannot be the person the run was made for: sign-off must be independent')
+      if (await SELECT.one.from(Signoffs).where({ runSeq })) return req.reject(409, `Run ${runSeq} already has a sign-off`)
+      if (conclusion === 'EFFECTIVE') {
+        if (result.result === 'NOT_CONCLUSIVE') return req.reject(422, 'This run was NOT_CONCLUSIVE (its cross-check did not agree or was unavailable); it cannot be concluded effective. Run it again.')
+        if (result.result === 'EXCEPTIONS' && (!exceptionsReviewed || String(comment || '').trim().length < 20)) {
+          return req.reject(422, 'This run has exceptions. To conclude EFFECTIVE, set exceptionsReviewed and explain the disposition in the comment (20+ characters).')
+        }
+      }
+      const rec = { controlId: result.controlId, runSeq, runHash: runRow.hash, signedBy: signer, signedAt: new Date().toISOString(), conclusion, exceptionsReviewed: !!exceptionsReviewed, comment: String(comment || '').slice(0, 1000) }
+      const audited = await appendInRequest(req, row(req, 'signOffControl', { runSeq, conclusion, exceptionsReviewed: !!exceptionsReviewed, comment: rec.comment }, rec, 'OK', 200,
+        { dataVersion: runRow.dataVersion, asOf: rec.signedAt, endUser: signer }))
+      await INSERT.into(Signoffs).entries({ ...rec, auditSeq: audited.seq })
+      return JSON.stringify({ ...rec, auditSeq: audited.seq })
+    })
+
+    // ---- evidence pack --------------------------------------------------------------------------------------------------
+    this.on('exportEvidence', async req => {
+      const { runSeq } = req.data
+      const { Signoffs, AuditLog } = cds.entities('sox')
+      const runRow = await SELECT.one.from(AuditLog).where({ seq: runSeq })
+      if (!runRow) return req.reject(404, `No audit row with seq ${runSeq}`)
+      if (runRow.tool !== 'runControl' || runRow.outcome !== 'OK') return req.reject(422, `Audit row ${runSeq} is not a successful control run`)
+      const result = JSON.parse(runRow.output)
+      const so = await SELECT.one.from(Signoffs).where({ runSeq })
+      let signoff = null, signRow = null
+      if (so) {
+        signRow = await SELECT.one.from(AuditLog).where({ seq: so.auditSeq })
+        if (!signRow || signRow.tool !== 'signOffControl') return req.reject(409, 'Sign-off record has no matching audit row')
+        signoff = JSON.parse(signRow.output)
+        for (const k of ['controlId', 'runSeq', 'runHash', 'signedBy', 'conclusion', 'comment']) {
+          if (String(so[k]) !== String(signoff[k])) return req.reject(409, `Sign-off table disagrees with its audit row on ${k}; refusing to export`)
+        }
+      }
+      const upTo = Math.max(runSeq, signRow?.seq || 0)
+      const chain = await SELECT.from(AuditLog).where({ seq: { '<=': upTo } }).orderBy('seq')
+      const narrative = buildNarrative(result, signoff)
+      const header = {
+        type: 'header', format: 'sox-evidence-pack/1', generatedAt: new Date().toISOString(), service: RULE_VERSION,
+        controlId: result.controlId, controlVersion: result.controlVersion, referenceDate: result.referenceDate, period: result.period || null,
+        runSeq, runHash: runRow.hash, signoffSeq: signRow?.seq ?? null, chainRows: chain.length, anchoredAtGenesis: true, narrativeSha256: sha(narrative),
+        howToVerify: 'node tools/verify-pack.js <file>: recomputes the audit hash chain from genesis, checks the run row, the result, the sign-off link and the narrative.'
+      }
+      const iso = v => (v == null ? null : new Date(v).toISOString())
+      const lines = [header, ...chain.map(r => ({ type: 'row', ...r, timestamp: iso(r.timestamp), asOf: iso(r.asOf) })), { type: 'result', result }, { type: 'signoff', signoff }, { type: 'narrative', text: narrative }]
+      await appendInRequest(req, row(req, 'exportEvidence', { runSeq }, { controlId: result.controlId, chainRows: chain.length, signoff: !!signoff }, 'OK', 200, { dataVersion: runRow.dataVersion, asOf: new Date().toISOString() }))
+      return lines.map(l => JSON.stringify(l)).join('\n') + '\n'
     })
 
     this.on('listControls', async req => {

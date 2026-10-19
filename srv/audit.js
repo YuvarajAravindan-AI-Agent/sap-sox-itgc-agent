@@ -32,7 +32,8 @@ async function link(tx, entry) {
   row.seq = seq
   row.prevHash = prevHash
   row.hash = hashRow(row)
-  return tx.run(INSERT.into('sox.AuditLog').entries(row))
+  await tx.run(INSERT.into('sox.AuditLog').entries(row))
+  return row
 }
 
 // Inside a request: the row commits together with the answer it describes; the lock is held until the request is done.

@@ -23,6 +23,14 @@ const basic = (u, p) => ({ Authorization: 'Basic ' + Buffer.from(`${u}:${p}`).to
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='not-a-date')", agent)).status, 400)
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='2026-10-19')", auditor)).status, 403)   // auditors cannot run controls
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='2026-10-19')")).status, 401)
+    const sg = "signOffControl(runSeq=1,conclusion='NOT_EFFECTIVE',exceptionsReviewed=true,comment='an explanation long enough')"
+    assert.strictEqual((await get(sg, agent)).status, 403, 'the agent cannot sign off')
+    assert.strictEqual((await get(sg, auditor)).status, 403, 'auditors cannot sign off')
+    const so = await get(sg, basic('owner', 'owner')); assert.strictEqual(so.status, 200, 'a control owner can')
+    assert.strictEqual(JSON.parse((await so.json()).value).signedBy, 'owner')
+    assert.strictEqual((await get('exportEvidence(runSeq=1)', agent)).status, 403, 'the agent cannot export evidence')
+    const ev = await get('exportEvidence(runSeq=1)', auditor); assert.strictEqual(ev.status, 200)
+    assert.strictEqual(JSON.parse((await ev.json()).value.split('\n')[0]).format, 'sox-evidence-pack/1')
     assert.strictEqual((await get('AuditLog', agent)).status, 403)                                                           // agents cannot read the trail
     assert.strictEqual((await get('verifyAuditChain()', agent)).status, 403)
     await new Promise(r => setTimeout(r, 500))

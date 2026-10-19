@@ -107,6 +107,19 @@ entity ChangeTickets {
   approvedAt   : Date;
 }
 
+// A named control owner's conclusion on one run. The agent cannot create these (separate scope), and each one is also an audit row.
+entity Signoffs : cuid {
+  controlId          : String(20);
+  runSeq             : Integer;        // audit seq of the runControl row this concludes on
+  runHash            : String(64);     // that row's hash, so a changed run cannot keep its sign-off
+  signedBy           : String(120);    // authenticated user, never taken from the request body
+  signedAt           : Timestamp;
+  conclusion         : String(12);     // EFFECTIVE | NOT_EFFECTIVE
+  exceptionsReviewed : Boolean;
+  comment            : String(1000);
+  auditSeq           : Integer;        // seq of the signOffControl audit row
+}
+
 // Tamper-evident audit trail, same shape as the sap-gov-sandbox one (srv/audit.js, srv/chain.js).
 entity AuditLog : cuid {
   timestamp     : Timestamp;

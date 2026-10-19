@@ -3,11 +3,13 @@
   "tenant-mode": "dedicated",
   "scopes": [
     { "name": "$XSAPPNAME.agent",   "description": "Run controls and read the control library (agent / destination client)" },
+    { "name": "$XSAPPNAME.controlOwner", "description": "Conclude on a control run (named human only; never granted to the agent client)" },
     { "name": "$XSAPPNAME.auditor", "description": "Read and export the audit trail" }
   ],
   "attributes": [],
   "role-templates": [
     { "name": "Agent",   "description": "Agent access",   "scope-references": ["$XSAPPNAME.agent"] },
+    { "name": "ControlOwner", "description": "Control owner sign-off", "scope-references": ["$XSAPPNAME.controlOwner"] },
     { "name": "Auditor", "description": "Audit read access", "scope-references": ["$XSAPPNAME.auditor"] }
   ],
   "authorities": ["$XSAPPNAME.agent"]

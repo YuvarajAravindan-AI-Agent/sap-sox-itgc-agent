@@ -54,7 +54,7 @@ Data must be seeded with planted, countable exceptions (for example 4 SoD confli
 - **After the trial:** the same code deploys to a client's BTP subaccount against their S/4HANA via a destination. See `DEPLOY.md` in `sap-gov-sandbox` for the rebuild steps.
 
 ## 7. Plan (about 2 weeks, trial ends mid-January 2027)
-Progress: days 1-7 done 2026-10-19 (all three controls with cross-checks, audited service). Next: days 8-9, evidence pack and human sign-off. See README.md.
+Progress: days 1-9 done 2026-10-19 (controls, cross-checks, audited service, sign-off, evidence pack, offline verifier, PDF). Next: days 10-11, agent layer (Gemini) and chat UI. See README.md.
 | Days | Deliverable |
 |---|---|
 | 1-2 | Repo fork, schema, seed generator with planted exceptions, tests that assert the planted counts |

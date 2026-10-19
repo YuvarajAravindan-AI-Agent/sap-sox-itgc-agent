@@ -4,10 +4,11 @@
   "description": "SOX 404 / ITGC evidence agent for SAP (USA): deterministic control tests, hash-chained audit, offline-verifiable evidence",
   "private": true,
   "dependencies": {
+    "@cap-js/hana": "^1",
     "@sap/cds": "^8",
-    "express": "^4",
     "@sap/xssec": "^4",
-    "@cap-js/hana": "^1"
+    "express": "^4",
+    "pdfkit": "^0.20.2"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^1",
@@ -15,7 +16,7 @@
   },
   "scripts": {
     "seed": "node seed/generate.js",
-    "test": "node test/seed.test.js && node test/chain.test.js && node test/ac01.test.js && node test/je01.test.js && node test/ac01-service.test.js && node test/e2e.test.js",
+    "test": "node test/seed.test.js && node test/chain.test.js && node test/ac01.test.js && node test/je01.test.js && node test/evidence.test.js && node test/ac01-service.test.js && node test/e2e.test.js",
     "start": "cds-serve"
   },
   "cds": {
@@ -48,6 +49,12 @@
               "password": "auditor",
               "roles": [
                 "auditor"
+              ]
+            },
+            "owner": {
+              "password": "owner",
+              "roles": [
+                "controlOwner"
               ]
             }
           }
