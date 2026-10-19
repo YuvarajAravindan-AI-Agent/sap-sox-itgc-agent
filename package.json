@@ -15,7 +15,7 @@
   },
   "scripts": {
     "seed": "node seed/generate.js",
-    "test": "node test/seed.test.js && node test/chain.test.js && node test/ac01.test.js && node test/ac01-service.test.js && node test/e2e.test.js",
+    "test": "node test/seed.test.js && node test/chain.test.js && node test/ac01.test.js && node test/je01.test.js && node test/ac01-service.test.js && node test/e2e.test.js",
     "start": "cds-serve"
   },
   "cds": {

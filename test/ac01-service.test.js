@@ -13,7 +13,7 @@ const M = manifest['ITGC-AC-01'], REF = manifest.parameters.referenceDate
   const run = async (d, h) => JSON.parse(await send('runControl', { controlId: 'ITGC-AC-01', referenceDate: d }, h))
 
   const lib = JSON.parse(await send('listControls', {}, { 'x-correlation-id': 'conv-a' }))
-  assert.deepStrictEqual(lib.controls.map(c => [c.controlId, c.available]), [['ITGC-AC-01', true], ['FIN-JE-01', false], ['ITGC-CM-01', false]])
+  assert.deepStrictEqual(lib.controls.map(c => [c.controlId, c.available]), [['ITGC-AC-01', true], ['FIN-JE-01', true], ['ITGC-CM-01', true]])
 
   const r = await run(REF, { 'x-correlation-id': 'conv-a', 'x-end-user': 'analyst1' })
   assert.strictEqual(r.result, 'EXCEPTIONS'); assert.strictEqual(r.reconciliation.status, 'MATCH')
@@ -26,7 +26,8 @@ const M = manifest['ITGC-AC-01'], REF = manifest.parameters.referenceDate
   // Failures: unknown control, not-yet-available control, bad date. Each is audited as an ERROR row.
   const fail = async (data, status) => { try { await send('runControl', data); assert.fail('should have failed') } catch (e) { assert.strictEqual(Number(e.statusCode || e.code), status, e.message) } }
   await fail({ controlId: 'NOPE-01' }, 404)
-  await fail({ controlId: 'FIN-JE-01' }, 501)
+  await fail({ controlId: 'FIN-JE-01', periodStart: '2026-07-01' }, 400)
+  await fail({ controlId: 'FIN-JE-01', periodStart: '2026-09-30', periodEnd: '2026-07-01' }, 400)
   await fail({ controlId: 'ITGC-AC-01', referenceDate: '2026-02-30' }, 400)
   await fail({ controlId: 'ITGC-AC-01', referenceDate: 'yesterday' }, 400)
 
@@ -36,8 +37,23 @@ const M = manifest['ITGC-AC-01'], REF = manifest.parameters.referenceDate
   const runRow = rows.find(x => x.tool === 'runControl' && x.outcome === 'OK')
   assert.strictEqual(runRow.endUser, 'analyst1'); assert.strictEqual(runRow.reconciliation, 'MATCH'); assert.strictEqual(runRow.dataVersion, r.dataVersion)
   assert.strictEqual(JSON.parse(runRow.output).sod.exceptionPairs, 5, 'the audit row holds the full result')
-  assert.strictEqual(rows.filter(x => x.outcome === 'ERROR').length, 4, 'every failure audited')
-  console.log('audit ok:', rows.length, 'rows chained, 4 failures recorded')
+  assert.strictEqual(rows.filter(x => x.outcome === 'ERROR').length, 5, 'every failure audited')
+  console.log('audit ok:', rows.length, 'rows chained, 5 failures recorded')
+
+  // The period controls through the service: default period = last completed quarter before the reference date.
+  const J = manifest['FIN-JE-01'], C = manifest['ITGC-CM-01']
+  const je = JSON.parse(await send('runControl', { controlId: 'FIN-JE-01', referenceDate: REF }, { 'x-end-user': 'analyst1' }))
+  assert.deepStrictEqual(je.period, { from: '2026-07-01', to: '2026-09-30' })
+  assert.strictEqual(je.flagged.count, J.flaggedDocuments); assert.strictEqual(je.population.manualDocuments, J.population.manualDocuments)
+  assert.deepStrictEqual(je.flagged.reasonCounts, J.reasonCounts); assert.strictEqual(je.reconciliation.status, 'MATCH'); assert.strictEqual(je.result, 'EXCEPTIONS')
+  const cm = JSON.parse(await send('runControl', { controlId: 'ITGC-CM-01', referenceDate: REF }))
+  assert.strictEqual(cm.flagged.count, C.exceptions); assert.strictEqual(cm.population.productionTransports, C.population.productionTransportsInQuarter)
+  assert.deepStrictEqual(cm.flagged.reasonCounts, C.reasonCounts); assert.strictEqual(cm.reconciliation.status, 'MATCH')
+  const explicit = JSON.parse(await send('runControl', { controlId: 'FIN-JE-01', referenceDate: REF, periodStart: '2026-07-01', periodEnd: '2026-09-30' }))
+  assert.strictEqual(explicit.dataVersion, je.dataVersion, 'explicit period equal to the default reads the same data')
+  const empty = JSON.parse(await send('runControl', { controlId: 'FIN-JE-01', referenceDate: '2026-12-31', periodStart: '2026-10-01', periodEnd: '2026-12-31' }))
+  assert.strictEqual(empty.result, 'PASS'); assert.strictEqual(empty.population.manualDocuments, 0)
+  console.log('FIN-JE-01 and ITGC-CM-01 through the service: planted numbers, MATCH, default and explicit period')
 
   // A clean control passes only while its cross-check agrees. A disagreeing or unavailable cross-check can never leave it looking clean.
   const xc = require('../srv/controls/ac01-crosscheck')

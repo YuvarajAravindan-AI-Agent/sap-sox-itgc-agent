@@ -7,10 +7,11 @@ service ControlService {
   @requires: 'agent'
   function listControls() returns LargeString;
 
-  // Runs one control over its full population, in code. referenceDate (yyyy-mm-dd) defaults to today (UTC).
+  // Runs one control over its full population, in code. referenceDate (yyyy-mm-dd) defaults to today (UTC). Period controls test
+  // periodStart..periodEnd, default the last calendar quarter that ended before referenceDate. ITGC-AC-01 tests the state on referenceDate.
   // The answer is a result and a list of exceptions. It is never a statement that the control is effective.
   @requires: 'agent'
-  function runControl(controlId : String, referenceDate : String) returns LargeString;
+  function runControl(controlId : String, referenceDate : String, periodStart : String, periodEnd : String) returns LargeString;
 
   @requires: 'auditor'
   function verifyAuditChain() returns LargeString;

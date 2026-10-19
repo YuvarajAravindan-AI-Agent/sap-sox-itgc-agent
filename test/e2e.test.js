@@ -16,6 +16,10 @@ const basic = (u, p) => ({ Authorization: 'Basic ' + Buffer.from(`${u}:${p}`).to
     assert.strictEqual(ok.status, 200)
     const res = JSON.parse((await ok.json()).value)
     assert.strictEqual(res.result, 'EXCEPTIONS'); assert.strictEqual(res.sod.exceptionPairs, 5); assert.strictEqual(res.reconciliation.status, 'MATCH')
+    const je = await get("runControl(controlId='FIN-JE-01',referenceDate='2026-10-19')", agent); assert.strictEqual(je.status, 200)
+    assert.strictEqual(JSON.parse((await je.json()).value).flagged.count, 8)
+    const cm = await get("runControl(controlId='ITGC-CM-01',referenceDate='2026-10-19')", agent); assert.strictEqual(cm.status, 200)
+    assert.strictEqual(JSON.parse((await cm.json()).value).flagged.count, 7)
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='not-a-date')", agent)).status, 400)
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='2026-10-19')", auditor)).status, 403)   // auditors cannot run controls
     assert.strictEqual((await get("runControl(controlId='ITGC-AC-01',referenceDate='2026-10-19')")).status, 401)

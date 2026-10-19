@@ -2,7 +2,7 @@
 
 SOX 404 / ITGC evidence agent for SAP, USA only. Scope and plan: [SCOPE.md](SCOPE.md). Reuses the audit chain from `sap-gov-sandbox`.
 
-## State (2026-10-19): days 1-5 of 14
+## State (2026-10-19): days 1-7 of 14
 - `db/schema.cds`: SAP-shaped tables (USR02, AGR_USERS, AGR_1251, T001B, ACDOCA, E070 and others) plus the hash-chained `AuditLog`.
 - `seed/generate.js`: deterministic synthetic data with planted exceptions and named decoys. Writes `db/data/sox-*.csv` and `seed/manifest.json`.
 - `test/seed.test.js`: regenerates and compares byte for byte, then recomputes every planted number with an independent SQL oracle and compares to the manifest.
@@ -27,4 +27,6 @@ Data is synthetic. The logic is what is being proven; it is not a customer's dat
     npm run seed             # regenerate (output is committed)
     npm test
 
-Not yet run on HANA (only SQLite). FIN-JE-01 and ITGC-CM-01 are in the library but return 501 until days 6-7.
+All three release-1 controls run (`srv/controls/je01*.js`, `cm01*.js`, shared `compare.js`, `dates.js` with US federal holiday calendar). Period controls default to the last completed calendar quarter before the reference date; `periodStart`/`periodEnd` override.
+
+Not yet run on HANA (only SQLite).

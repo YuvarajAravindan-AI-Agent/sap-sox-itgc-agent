@@ -3,7 +3,9 @@ const { appendInRequest, appendOwnTx, verify, exportRows, dataVersion } = requir
 const catalogue = require('./controls/catalogue')
 const ac01 = require('./controls/ac01')
 const crosscheck = require('./controls/ac01-crosscheck')
-const { today, valid } = require('./controls/dates')
+const je01 = require('./controls/je01'), je01x = require('./controls/je01-crosscheck')
+const cm01 = require('./controls/cm01'), cm01x = require('./controls/cm01-crosscheck')
+const { today, valid, lastCompletedQuarter } = require('./controls/dates')
 
 // Controls that can run now. Each: how to load its data, run it, and cross-check it.
 const CONTROLS = {
@@ -22,6 +24,26 @@ const CONTROLS = {
     },
     run: (data, ref) => ac01.run(data, ref),
     reconcile: (result, data) => crosscheck.reconcile(result, data)
+  },
+  'FIN-JE-01': {
+    async load(period) {
+      const { JournalLines, PostingPeriods, Users } = cds.entities('sox')
+      return {
+        lines: await SELECT.from(JournalLines).where({ postingDate: { between: period.from, and: period.to } }).orderBy('docNumber', 'lineItem'),
+        periods: await SELECT.from(PostingPeriods).orderBy('fiscalYear', 'period'),
+        users: await SELECT.from(Users).orderBy('userId')
+      }
+    },
+    run: (data, ref, period) => je01.run(data, ref, period),
+    reconcile: (result, data) => je01x.reconcile(result, data)
+  },
+  'ITGC-CM-01': {
+    async load() {
+      const { Transports, ChangeTickets } = cds.entities('sox')
+      return { transports: await SELECT.from(Transports).orderBy('trkorr'), tickets: await SELECT.from(ChangeTickets).orderBy('ticketId') }
+    },
+    run: (data, ref, period) => cm01.run(data, ref, period),
+    reconcile: (result, data) => cm01x.reconcile(result, data)
   }
 }
 
@@ -73,15 +95,22 @@ module.exports = class ControlService extends cds.ApplicationService {
       const referenceDate = req.data.referenceDate || today()
       if (!valid(referenceDate)) return req.reject(400, `referenceDate must be a real date in yyyy-mm-dd form, got "${req.data.referenceDate}"`)
 
+      // Period controls test one period; default is the last calendar quarter that has fully ended before the reference date.
+      const { periodStart, periodEnd } = req.data
+      for (const [n, v] of [['periodStart', periodStart], ['periodEnd', periodEnd]]) if (v && !valid(v)) return req.reject(400, `${n} must be a real date in yyyy-mm-dd form, got "${v}"`)
+      if (!!periodStart !== !!periodEnd) return req.reject(400, 'give both periodStart and periodEnd, or neither')
+      const period = periodStart ? { from: periodStart, to: periodEnd } : lastCompletedQuarter(referenceDate)
+      if (period.from > period.to) return req.reject(400, 'periodStart is after periodEnd')
+
       const asOf = new Date().toISOString()
-      const data = await impl.load()
-      const result = impl.run(data, referenceDate)
+      const data = await impl.load(period)
+      const result = impl.run(data, referenceDate, period)
       result.reconciliation = impl.reconcile(result, data)
       result.dataVersion = dataVersion(data)
       // A cross-check that disagrees or is unavailable can never leave the control looking clean.
       if (result.reconciliation.status !== 'MATCH' && result.result === 'PASS') result.result = 'NOT_CONCLUSIVE'
       result.notice = 'This is test evidence. It is not an assessment that the control is effective; only a named control owner can sign off.'
-      await appendInRequest(req, row(req, 'runControl', { controlId, referenceDate }, result, 'OK', 200,
+      await appendInRequest(req, row(req, 'runControl', { controlId, referenceDate, period }, result, 'OK', 200,
         { dataVersion: result.dataVersion, asOf, reconciliation: result.reconciliation.status }))
       return JSON.stringify(result)
     })
