@@ -30,6 +30,13 @@ const EFFECTIVE_CLAIM = [
   /\b(control|controls|it)\b[^.?!]{0,50}\b(is|are|was|were|appears?|seems?|looks?)\b[^.?!]{0,25}\b(effective|compliant|adequate|clean|passed|operating effectively)\b/i,
   /\bsox[- ]?compliant\b/i, /\ball clear\b/i, /\b(i|we)\b[^.?!]{0,15}\b(have|'ve)?\s*(signed|certified|concluded|marked)\b/i, /\byou can (safely )?(sign|conclude|certify)\b/i
 ]
+// A sentence that explicitly disclaims is not a claim ("does not determine whether the control is effective", "I cannot say it is compliant",
+// "it is not an assessment that ...", "only the control owner can conclude"). Anything else that matches is a claim, including a plain
+// negative conclusion such as "the control is not effective", which is also a conclusion only the control owner may draw.
+const DISCLAIMER = /\b(cannot|can't|unable to|do(es)? not (determine|conclude|assess|say|state|claim|certify|decide)|not an? (assessment|conclusion|certification|opinion)|whether|only (a|the) (named )?(human )?(control owner|owner)|if the|test evidence only)\b/i
+function claimsEffectiveness(text) {
+  return String(text).split(/(?<=[.!?])\s+|\n+|[;:]\s*|,\s+(?:but|and|so|yet|however)\s+|\s+but\s+/i).some(sentence => !DISCLAIMER.test(sentence) && EFFECTIVE_CLAIM.some(rx => rx.test(sentence)))
+}
 const NO_ISSUES = /\bno (issues|exceptions|findings|problems|conflicts)\b/i
 
 const REFUSAL = 'I cannot mark, sign off, certify or conclude on a control. I only produce test results from deterministic code. A named control owner concludes using the sign-off function, on a specific audited run.'
@@ -55,7 +62,7 @@ function guard(userText, text, trace) {
   }
   let reply = String(text || '').trim(), withheld = null
   const exceptional = runs.some(r => r.result !== 'PASS')
-  if (EFFECTIVE_CLAIM.some(rx => rx.test(reply))) withheld = 'the wording claimed a control was effective or compliant'
+  if (claimsEffectiveness(reply)) withheld = 'the wording claimed a control was effective or compliant'
   else if (exceptional && NO_ISSUES.test(reply)) withheld = 'the wording said there were no issues although a run has exceptions or is not conclusive'
   const allowed = new Set((JSON.stringify(trace.map(t => t.result)) + ' ' + userText).match(/\d[\d,]*(?:\.\d+)?/g)?.map(n => n.replace(/,/g, '')) || [])
   const stray = !withheld && (reply.match(/\d[\d,]*(?:\.\d+)?/g) || []).map(n => n.replace(/,/g, '')).filter(n => n.replace('.', '').length >= 2 && !allowed.has(n))
@@ -97,4 +104,4 @@ async function chat({ messages, cid, llm, controls }) {
   return { ...guard(lastUser, 'I could not finish within the allowed number of tool steps.', trace), trace }
 }
 
-module.exports = { chat, guard, SYSTEM, TOOLS, toolSpecs, REFUSAL, factLine, SIGNOFF_ASK }
+module.exports = { chat, guard, claimsEffectiveness, SYSTEM, TOOLS, toolSpecs, REFUSAL, factLine, SIGNOFF_ASK }

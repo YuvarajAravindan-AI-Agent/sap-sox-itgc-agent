@@ -2,7 +2,7 @@
 // these tests make it misbehave on purpose and check that the code around it holds.
 const assert = require('node:assert')
 const { boot } = require('./helpers')
-const { chat, guard, REFUSAL, toolSpecs } = require('../agent/lib')
+const { chat, guard, REFUSAL, toolSpecs, claimsEffectiveness } = require('../agent/lib')
 
 ;(async () => {
   const cds = await boot()
@@ -52,6 +52,16 @@ const { chat, guard, REFUSAL, toolSpecs } = require('../agent/lib')
     assert.match(r.facts[0], /test result EXCEPTIONS/)
   }
   console.log('claims of effectiveness or "no exceptions" after an exceptions run are withheld')
+
+  // 4b. Disclaimers are not claims (this wording was wrongly withheld in the live chat on 2026-10-19); real claims still are.
+  for (const ok of ['This run returns test evidence only. It does not determine whether the control is effective or ineffective; only a named control owner can conclude.',
+    'I cannot say the control is effective.', 'Whether the control is compliant is for the control owner to decide.', 'This is test evidence. It is not an assessment that the control is effective.',
+    'If the control were effective there would be no exceptions.']) assert.strictEqual(claimsEffectiveness(ok), false, 'false positive: ' + ok)
+  for (const bad of ['The control is effective.', 'Overall the segregation of duties control appears effective.', 'The control is not effective.', 'It is SOX compliant.', 'All clear.',
+    'The control is effective, not compliant.', 'The control is effective, but whether to sign off is the owner\'s decision.', 'Whether you sign off is up to you; the control is effective.', 'Note: the control is operating effectively.', 'I have signed off the control.']) assert.strictEqual(claimsEffectiveness(bad), true, 'missed claim: ' + bad)
+  r = await ask('Run segregation of duties', scripted(tool('run_control', { control_id: 'ITGC-AC-01', reference_date: '2026-10-19' }), say('It returned EXCEPTIONS. It does not determine whether the control is effective; only the control owner can.')))
+  assert.strictEqual(r.withheld, null); assert.match(r.reply, /does not determine whether/)
+  console.log('disclaimers pass through; claims (including "not effective") are still withheld')
 
   // 5. A cross-check problem is always shown, whatever the model writes.
   const xc = require('../srv/controls/ac01-crosscheck'), real = xc.reconcile
