@@ -175,9 +175,10 @@ module.exports = class ControlService extends cds.ApplicationService {
       // A cross-check that disagrees or is unavailable can never leave the control looking clean.
       if (result.reconciliation.status !== 'MATCH' && result.result === 'PASS') result.result = 'NOT_CONCLUSIVE'
       result.notice = 'This is test evidence. It is not an assessment that the control is effective; only a named control owner can sign off.'
-      await appendInRequest(req, row(req, 'runControl', { controlId, referenceDate, period }, result, 'OK', 200,
+      const audited = await appendInRequest(req, row(req, 'runControl', { controlId, referenceDate, period }, result, 'OK', 200,
         { dataVersion: result.dataVersion, asOf, reconciliation: result.reconciliation.status }))
-      return JSON.stringify(result)
+      // runSeq and runHash identify this run in the audit chain (a row cannot contain its own seq, so they are not in the audited output).
+      return JSON.stringify({ ...result, runSeq: audited.seq, runHash: audited.hash })
     })
 
     return super.init()

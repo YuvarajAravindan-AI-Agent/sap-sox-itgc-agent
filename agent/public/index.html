@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOX Control Agent</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#1b2a3a;--mute:#5f7084;--line:#d9e0e8;--brand:#0a6ed1;--ok:#107e3e;--warn:#9a5b00;--warnbg:#fff4e0;--bad:#bb0000;--fact:#eef5fd}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1419;--card:#18202a;--ink:#e6edf3;--mute:#8fa1b4;--line:#2a3643;--brand:#58a6ff;--ok:#3fb950;--warn:#e3b341;--warnbg:#2a2210;--bad:#f85149;--fact:#142235}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:780px;margin:0 auto;padding:16px;display:flex;flex-direction:column;min-height:100vh}
+h1{font-size:18px;margin:4px 0 2px}p.sub{margin:0 0 12px;color:var(--mute);font-size:13px}
+#log{flex:1;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.msg{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);white-space:pre-wrap}
+.user{align-self:flex-end;background:var(--brand);color:#fff;border-color:transparent;max-width:85%}
+.banner{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-size:13px;border:1px solid var(--warn)}
+.facts{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--fact);border:1px solid var(--line);font-size:13px}
+.facts b{display:block;margin-bottom:4px;color:var(--mute);font-weight:600;font-size:12px}
+details{margin-top:8px;font-size:12px;color:var(--mute)}details pre{margin:6px 0 0;padding:8px;background:var(--bg);border-radius:6px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 10px;border-radius:16px;cursor:pointer;font:inherit;font-size:13px}
+form{display:flex;gap:8px;position:sticky;bottom:0;padding:10px 0;background:var(--bg)}
+input{flex:1;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+button.send{padding:10px 16px;border:0;border-radius:8px;background:var(--brand);color:#fff;font:inherit;cursor:pointer}
+button:disabled{opacity:.5}.cid{font-size:11px;color:var(--mute);margin-top:6px}
+</style></head><body><main>
+<h1>SOX 404 / ITGC control agent</h1>
+<p class="sub">Controls run in audited code over the full population. The assistant explains results; it cannot conclude that a control is effective. Only a named control owner can, on a specific audited run. Demo data is synthetic.</p>
+<div class="chips" id="chips"></div>
+<div id="log"></div>
+<form id="f"><input id="q" placeholder="Ask about a control, e.g. segregation of duties this quarter" autocomplete="off"><button class="send" id="b">Send</button></form>
+</main>
+<script>
+const log=document.getElementById('log'),q=document.getElementById('q'),b=document.getElementById('b');
+let messages=[],cid=null;
+for(const t of ['Which controls can you run?','Run the segregation of duties control as of 2026-10-19','Which manual journals were flagged last quarter, and why?','Any production changes without an approved ticket in Q3 2026?','Mark ITGC-AC-01 as effective'])
+ {const x=document.createElement('button');x.textContent=t;x.onclick=()=>{q.value=t;f.requestSubmit()};chips.appendChild(x)}
+function add(cls,text){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;log.appendChild(d);d.scrollIntoView({block:'end'});return d}
+f.onsubmit=async e=>{e.preventDefault();const text=q.value.trim();if(!text)return;q.value='';b.disabled=true;
+ messages.push({role:'user',content:text});add('user',text);const w=add('bot','Running the control service…');
+ try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages,conversationId:cid})});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);cid=j.conversationId;messages.push({role:'assistant',content:j.reply});
+  w.textContent=j.reply.replace(/[*]{2}/g,"");
+  for(const t of j.banners||[]){const d=document.createElement('div');d.className='banner';d.textContent=t;w.appendChild(d)}
+  if((j.facts||[]).length){const d=document.createElement('div');d.className='facts';const h=document.createElement('b');h.textContent='Facts from the test run (not written by the assistant)';d.appendChild(h);
+   for(const t of j.facts){const p=document.createElement('div');p.textContent=t;d.appendChild(p)}w.appendChild(d)}
+  if(j.trace.length){const d=document.createElement('details');const s=document.createElement('summary');s.textContent=j.trace.length+' governed tool call(s)';d.appendChild(s);
+   for(const t of j.trace){const p=document.createElement('pre');p.textContent=t.status+' '+t.tool+'('+JSON.stringify(t.args)+')\n'+JSON.stringify(t.result,null,1);d.appendChild(p)}w.appendChild(d)}
+  const c=document.createElement('div');c.className='cid';c.textContent='conversation id (audit correlation): '+cid;w.appendChild(c);
+ }catch(err){w.textContent='Error: '+err.message}
+ b.disabled=false;q.focus()};
+</script></body></html>

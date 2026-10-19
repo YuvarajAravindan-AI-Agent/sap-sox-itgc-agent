@@ -1,0 +1,11 @@
+applications:
+  - name: sox-itgc-agent
+    memory: 256M
+    disk_quota: 512M
+    buildpacks: [nodejs_buildpack]
+    command: node server.js
+    services: [gov-dest-admin]
+    env:
+      CONTROLS_DEST: SoxControlService
+      LLM_BASE_URL: https://vertex-gateway-714593281128.us-central1.run.app/v1beta/openai
+      LLM_MODEL: gemini-3.8-flash
